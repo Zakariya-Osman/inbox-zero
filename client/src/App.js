@@ -12,7 +12,15 @@ function App() {
       .then((res) => setTasks(res.data))
       .catch((err) => console.error(err));
   }, []);
-
+  // delete task
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/tasks/${id}`);
+      setTasks((prevTasks) => prevTasks.filter((task) => task._id !== id));
+    } catch (err) {
+      console.log("Error deleting task", err);
+    }
+  };
   // Add new task
   const addTask = async () => {
     if (!title) return;
@@ -55,6 +63,12 @@ function App() {
         {tasks.map((task) => (
           <li key={task._id}>
             {task.title} {task.done ? "✅" : ""}
+            <button
+              onClick={() => handleDelete(task._id)}
+              style={{ padding: "0.5rem 1rem" }}
+            >
+              Delete
+            </button>
           </li>
         ))}
       </ul>
