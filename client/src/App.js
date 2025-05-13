@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import TaskInput from "./componets/TaskInput";
+import TaskList from "./componets/TaskList";
+import Header from "./componets/Header";
 
 function App() {
   const [tasks, setTasks] = useState([]);
@@ -42,36 +45,9 @@ function App() {
 
   return (
     <div style={{ padding: "2rem", fontFamily: "Arial, sans-serif" }}>
-      <h1>📋 Inbox Zero</h1>
-      <input
-        type="text"
-        placeholder="Add a task..."
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        style={{
-          padding: "0.5rem",
-          marginRight: "1rem",
-          width: "300px",
-          fontSize: "1rem",
-        }}
-      />
-      <button onClick={addTask} style={{ padding: "0.5rem 1rem" }}>
-        Add Task
-      </button>
-
-      <ul style={{ marginTop: "2rem", fontSize: "1.2rem" }}>
-        {tasks.map((task) => (
-          <li key={task._id}>
-            {task.title} {task.done ? "✅" : ""}
-            <button
-              onClick={() => handleDelete(task._id)}
-              style={{ padding: "0.5rem 1rem" }}
-            >
-              Delete
-            </button>
-          </li>
-        ))}
-      </ul>
+      <Header></Header>
+      <TaskInput title={title} setTitle={setTitle} addTask={addTask} />
+      <TaskList tasks={tasks} handleDelete={handleDelete} />
     </div>
   );
 }
