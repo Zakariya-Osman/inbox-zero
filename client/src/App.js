@@ -1,51 +1,68 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { io } from "socket.io-client";
 import axios from "axios";
-import TaskInput from "./componets/TaskInput";
-import TaskList from "./componets/TaskList";
-import Header from "./componets/Header";
+import TaskInput from "./components/TaskInput";
+import TaskList from "./components/TaskList";
+import Header from "./components/Header";
+
+const socket = io("http://localhost:5000");
+
+// ✅ Add these for debugging
+console.log("✅ Socket object created:", socket);
+
+socket.on("connect", () => {
+  console.log("🔌 Socket connected to server (ID):", socket.id);
+});
+
+socket.on("disconnect", () => {
+  console.log("❌ Socket disconnected");
+});
 
 function App() {
   const [tasks, setTasks] = useState([]);
   const [title, setTitle] = useState("");
 
-  // Fetch tasks on load
   useEffect(() => {
     axios
       .get("http://localhost:5000/api/tasks")
       .then((res) => setTasks(res.data))
-      .catch((err) => console.error(err));
+      .catch((err) => console.error("Initial fetch error:", err));
+
+    socket.on("taskList", (updatedTasks) => {
+      console.log("🔥 Received taskList from server:", updatedTasks);
+      setTasks(updatedTasks);
+    });
+
+    return () => {
+      socket.off("taskList"); // ✅ Just remove listener, keep connection alive
+    };
   }, []);
-  // delete task
-  const handleDelete = async (id) => {
+
+  const addTask = async () => {
+    if (!title.trim()) return;
+
     try {
-      await axios.delete(`http://localhost:5000/api/tasks/${id}`);
-      setTasks((prevTasks) => prevTasks.filter((task) => task._id !== id));
+      console.log("➕ Adding task:", title);
+      await axios.post("http://localhost:5000/api/tasks", { title });
+      setTitle(""); // just clear input, don't touch tasks list!
     } catch (err) {
-      console.log("Error deleting task", err);
+      console.error("❌ Error adding task:", err);
     }
   };
-  // Add new task
-  const addTask = async () => {
-    if (!title) return;
 
-    console.log("Adding task:", title); // ADD THIS LINE
-
+  const handleDelete = async (id) => {
     try {
-      const res = await axios.post("http://localhost:5000/api/tasks", {
-        title,
-      });
-      console.log("Server responded with:", res.data); // ADD THIS TOO
-
-      setTasks([...tasks, res.data]);
-      setTitle("");
+      console.log("🗑️ Deleting task:", id);
+      await axios.delete(`http://localhost:5000/api/tasks/${id}`);
+      // Don't update task state here — wait for the socket to do it
     } catch (err) {
-      console.error("Error adding task:", err); // This shows what's wrong
+      console.log("❌ Error deleting task", err);
     }
   };
 
   return (
     <div style={{ padding: "2rem", fontFamily: "Arial, sans-serif" }}>
-      <Header></Header>
+      <Header />
       <TaskInput title={title} setTitle={setTitle} addTask={addTask} />
       <TaskList tasks={tasks} handleDelete={handleDelete} />
     </div>
