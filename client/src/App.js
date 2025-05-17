@@ -4,8 +4,8 @@ import axios from "axios";
 import TaskInput from "./components/TaskInput";
 import TaskList from "./components/TaskList";
 import Header from "./components/Header";
-
-const socket = io("http://localhost:5000");
+const API = process.env.REACT_APP_SERVER_LINK;
+const socket = io(API);
 
 // ✅ Add these for debugging
 console.log("✅ Socket object created:", socket);
@@ -24,7 +24,7 @@ function App() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/tasks")
+      .get(`${API}/api/tasks`)
       .then((res) => setTasks(res.data))
       .catch((err) => console.error("Initial fetch error:", err));
 
@@ -43,7 +43,7 @@ function App() {
 
     try {
       console.log("➕ Adding task:", title);
-      await axios.post("http://localhost:5000/api/tasks", { title });
+      await axios.post(`${API}/api/tasks`, { title });
       setTitle(""); // just clear input, don't touch tasks list!
     } catch (err) {
       console.error("❌ Error adding task:", err);
@@ -53,7 +53,7 @@ function App() {
   const handleDelete = async (id) => {
     try {
       console.log("🗑️ Deleting task:", id);
-      await axios.delete(`http://localhost:5000/api/tasks/${id}`);
+      await axios.delete(`${API}/api/tasks/${id}`);
       // Don't update task state here — wait for the socket to do it
     } catch (err) {
       console.log("❌ Error deleting task", err);
